@@ -17,7 +17,7 @@
             document.addEventListener('mousedown', onDocumentMouseDown, false);
             document.addEventListener("keydown", onDocumentKeyPress, false);
             //var ctx = c.getContext("2d");
-            // var points = []
+            var points = []
 
             // revolutions per second
             var pathtype = "circle";
@@ -36,14 +36,20 @@
                     {
                         var cyl1 = cyls[i];
                         if(pathtypes[i] === "circle"){
-                            cyl1.position.x += Math.cos( starttimes[i]+2*timer )*4;
-                            cyl1.position.y += Math.sin( starttimes[i]+2*timer )*4;
+                            radius = 50;
+                            speed = 10;
+                            cyl1.position.x = points[i][0] + Math.cos( starttimes[i]+timer*speed )*radius;
+                            cyl1.position.y = points[i][1] + Math.sin( starttimes[i]+timer*speed )*radius;
                         }
                         else if(pathtypes[i] === "hline"){
-                            cyl1.position.x += Math.cos( starttimes[i]+timer );
+                            radius = 10;
+                            speed = 10;
+                            cyl1.position.x += Math.cos( starttimes[i]+timer*speed )*radius;
                         }
                         else if(pathtypes[i] === "vline"){
-                            cyl1.position.y += Math.sin( starttimes[i]+timer );
+                            radius = 10;
+                            speed = 10;
+                            cyl1.position.y += Math.sin( starttimes[i]+timer*speed )*radius;
                         }
                     }
                 }
@@ -79,6 +85,7 @@
                 cyl.rotation.x += Math.PI/2;
                 cyl.position.x = event.clientX;
                 cyl.position.y = 700 - event.clientY;
+                points.push([event.clientX,event.clientY])
                 cyl.overdraw = true;
                 cyls.push(cyl);
                 starttimes.push((new Date()).getTime());
