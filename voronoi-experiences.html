@@ -9,7 +9,7 @@
         </style>
     </head>
     <body>
-        <div id="container"></div>
+        <div id="container"> </div>
 
         <script src="http://www.html5canvastutorials.com/libraries/three.min.js"></script>
         <script defer="defer">
@@ -65,7 +65,7 @@
             document.body.appendChild(renderer.domElement);
 
             // camera
-            var camera = new THREE.OrthographicCamera(0, 1400, 700, 0, 1, 1000);
+            var camera = new THREE.OrthographicCamera(0, window.innerWidth, window.innerHeight, 0, 1, 1000);
             camera.position.z = 700;
 
             // scene
@@ -80,14 +80,14 @@
                 var cyl = new THREE.Mesh(new THREE.CylinderGeometry(0, 1400, 400, 50, 50, false), mat);
                 cyl.rotation.x += Math.PI/2;
                 cyl.position.x = event.clientX;
-                cyl.position.y = 700 - event.clientY;
-                points.push([event.clientX,event.clientY])
+                cyl.position.y = window.innerHeight - event.clientY;
+                points.push([event.clientX,window.innerHeight - event.clientY])
                 cyl.overdraw = true;
                 cyls.push(cyl);
                 starttimes.push((new Date()).getTime());
                 pathtypes.push(pathtype);
                 scene.add(cyl);
-                document.getElementById("container").innerHTML = points;
+                //document.getElementById("container").innerHTML = points;
             }
 
             function onDocumentKeyPress(event) {
