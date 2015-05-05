@@ -35,21 +35,17 @@
                     for (i = 0; i < cyls.length; i++)
                     {
                         var cyl1 = cyls[i];
-                        if(pathtypes[i] === "circle"){
                             radius = 50;
                             speed = 10;
+                        if(pathtypes[i] === "circle"){
                             cyl1.position.x = points[i][0] + Math.cos( starttimes[i]+timer*speed )*radius;
                             cyl1.position.y = points[i][1] + Math.sin( starttimes[i]+timer*speed )*radius;
                         }
                         else if(pathtypes[i] === "hline"){
-                            radius = 10;
-                            speed = 10;
-                            cyl1.position.x += Math.cos( starttimes[i]+timer*speed )*radius;
+                            cyl1.position.x = points[i][0] + Math.cos( starttimes[i]+timer*speed )*radius;
                         }
                         else if(pathtypes[i] === "vline"){
-                            radius = 10;
-                            speed = 10;
-                            cyl1.position.y += Math.sin( starttimes[i]+timer*speed )*radius;
+                            cyl1.position.y = points[i][1] + Math.sin( starttimes[i]+timer*speed )*radius;
                         }
                     }
                 }
