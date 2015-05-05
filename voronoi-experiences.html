@@ -18,7 +18,7 @@
             document.addEventListener("keydown", onDocumentKeyPress, false);
             //var ctx = c.getContext("2d");
             var points = []
-
+            var locSpheres = []
             // revolutions per second
             var pathtype = "circle";
             var angularSpeed = 2; 
@@ -35,17 +35,22 @@
                     for (i = 0; i < cyls.length; i++)
                     {
                         var cyl1 = cyls[i];
-                            radius = 50;
-                            speed = 10;
+                        var s = locSpheres[i];
+                        radius = 50;
+                        speed = 5;
                         if(pathtypes[i] === "circle"){
                             cyl1.position.x = points[i][0] + Math.cos( starttimes[i]+timer*speed )*radius;
                             cyl1.position.y = points[i][1] + Math.sin( starttimes[i]+timer*speed )*radius;
+                            s.position.x = cyl1.position.x;
+                            s.position.y = cyl1.position.y;
                         }
                         else if(pathtypes[i] === "hline"){
                             cyl1.position.x = points[i][0] + Math.cos( starttimes[i]+timer*speed )*radius;
+                            s.position.x = cyl1.position.x;
                         }
                         else if(pathtypes[i] === "vline"){
                             cyl1.position.y = points[i][1] + Math.sin( starttimes[i]+timer*speed )*radius;
+                            s.position.y = cyl1.position.y;
                         }
                     }
                 }
@@ -76,7 +81,15 @@
             animate();
 
             function onDocumentMouseDown(event) {
-                var mat = new THREE.MeshNormalMaterial();
+                var geometry = new THREE.SphereGeometry( 3, 32, 32 );
+                var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
+                var sphere = new THREE.Mesh( geometry, material );
+                scene.add( sphere );
+                sphere.position.x = event.clientX;
+                sphere.position.y = window.innerHeight - event.clientY;
+                sphere.position.z = 198;
+                //http://www.paulirish.com/2009/random-hex-color-code-snippets/
+                var mat = new THREE.MeshBasicMaterial({color: '#'+Math.floor(Math.random()*16777215).toString(16)});
                 var cyl = new THREE.Mesh(new THREE.CylinderGeometry(0, 1400, 400, 50, 50, false), mat);
                 cyl.rotation.x += Math.PI/2;
                 cyl.position.x = event.clientX;
@@ -84,6 +97,7 @@
                 points.push([event.clientX,window.innerHeight - event.clientY])
                 cyl.overdraw = true;
                 cyls.push(cyl);
+                locSpheres.push(sphere);
                 starttimes.push((new Date()).getTime());
                 pathtypes.push(pathtype);
                 scene.add(cyl);
