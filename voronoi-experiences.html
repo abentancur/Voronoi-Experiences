@@ -16,42 +16,18 @@
 
             document.addEventListener('mousedown', onDocumentMouseDown, false);
             document.addEventListener("keydown", onDocumentKeyPress, false);
-            //var ctx = c.getContext("2d");
-            var points = []
-            var locSpheres = []
-            // revolutions per second
-            var pathtype = "circle";
-            var angularSpeed = 2; 
-            var lastTime = 0;
-            var starttimes = [];
-            var pathtypes = [];
-            var cyls = [];
+            //current path type for new points to follow
+            var currentPathtype = "circle";
+            //a list of all the voronoi cells
+            var voronoiMap = [];
+
             // this function is executed on each animation frame
             function animate(){
-                // update
+                // update all the cells in the voronoi map
                 var timer = new Date().getTime() * 0.0005;
-                if (cyls.length > 0)
-                {
-                    for (i = 0; i < cyls.length; i++)
-                    {
-                        var cyl1 = cyls[i];
-                        var s = locSpheres[i];
-                        radius = 50;
-                        speed = 5;
-                        if(pathtypes[i] === "circle"){
-                            cyl1.position.x = points[i][0] + Math.cos( starttimes[i]+timer*speed )*radius;
-                            cyl1.position.y = points[i][1] + Math.sin( starttimes[i]+timer*speed )*radius;
-                            s.position.x = cyl1.position.x;
-                            s.position.y = cyl1.position.y;
-                        }
-                        else if(pathtypes[i] === "hline"){
-                            cyl1.position.x = points[i][0] + Math.cos( starttimes[i]+timer*speed )*radius;
-                            s.position.x = cyl1.position.x;
-                        }
-                        else if(pathtypes[i] === "vline"){
-                            cyl1.position.y = points[i][1] + Math.sin( starttimes[i]+timer*speed )*radius;
-                            s.position.y = cyl1.position.y;
-                        }
+                if (voronoiMap.length > 0){
+                    for (cell of voronoiMap){
+                        cell.update(timer);
                     }
                 }
 
@@ -76,49 +52,73 @@
             // scene
             var scene = new THREE.Scene();
 
-
             // start animation
             animate();
 
             function onDocumentMouseDown(event) {
-                var geometry = new THREE.SphereGeometry( 3, 32, 32 );
-                var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
-                var sphere = new THREE.Mesh( geometry, material );
-                scene.add( sphere );
-                sphere.position.x = event.clientX;
-                sphere.position.y = window.innerHeight - event.clientY;
-                sphere.position.z = 198;
-                //http://www.paulirish.com/2009/random-hex-color-code-snippets/
-                var mat = new THREE.MeshBasicMaterial({color: '#'+Math.floor(Math.random()*16777215).toString(16)});
-                var cyl = new THREE.Mesh(new THREE.CylinderGeometry(0, 1400, 400, 50, 50, false), mat);
-                cyl.rotation.x += Math.PI/2;
-                cyl.position.x = event.clientX;
-                cyl.position.y = window.innerHeight - event.clientY;
-                points.push([event.clientX,window.innerHeight - event.clientY])
-                cyl.overdraw = true;
-                cyls.push(cyl);
-                locSpheres.push(sphere);
-                starttimes.push((new Date()).getTime());
-                pathtypes.push(pathtype);
-                scene.add(cyl);
-                //document.getElementById("container").innerHTML = points;
+                var cell = new voronoiCell(currentPathtype, event.clientX, window.innerHeight - event.clientY);
+                scene.add(cell.sphere);
+                scene.add(cell.cone);
+                voronoiMap.push(cell);
+    
             }
-
             function onDocumentKeyPress(event) {
                 var k = event.which || event.keyCode;
                 if(k == 67){
-                    pathtype="circle";
+                    currentPathtype="circle";
                 }
                 else if(k == 72){
-                    pathtype="hline";
+                    currentPathtype="hline";
                 }
                 else if(k == 86){
-                    pathtype="vline";
+                    currentPathtype="vline";
                 }
                 else{
                     alert("Invalid Key!!!\n\nMouseDown to add new particles to the canvus\nPress 'c' to change subsequent particle paths to circles\nPress 'h' to change subsequent particle paths to horizontal lines\nPress 'v' to change subsequent particle paths to vertical lines"); 
                 }
             }
-        </script>
-    </body>
-</html>      
+
+            function voronoiCell(pathtype, cx, cy, speed = 5, size = 50) {
+                //the black sphere represents the location for the voronoi cell
+                var geometry = new THREE.SphereGeometry( 3, 32, 32 );
+                var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
+                this.sphere = new THREE.Mesh( geometry, material );
+                this.sphere.position.x = cx;
+                this.sphere.position.y = cy;
+                this.sphere.position.z = 198;
+                //the cone represents the voronoi cell
+                var mat = new THREE.MeshBasicMaterial({color: '#'+Math.floor(Math.random()*16777215).toString(16)});
+                this.cone = new THREE.Mesh(new THREE.CylinderGeometry(0, 1400, 400, 50, 50, false), mat);
+                this.cone.rotation.x += Math.PI/2;
+                this.cone.position.x = cx;
+                this.cone.position.y = cy;
+                this.cone.overdraw = true;
+                //other attributes used to keep move the location along a path
+                this.starttime = (new Date()).getTime();
+                this.pathtype = pathtype;
+                this.speed = speed;
+                this.size = size;
+                this.cx = cx;
+                this.cy = cy;
+            }
+
+            voronoiCell.prototype.update = function(timer){
+                if(this.pathtype == "circle"){
+                    this.cone.position.x = this.cx + Math.cos( this.starttime + timer * this.speed ) * this.size;
+                    this.cone.position.y = this.cy + Math.sin( this.starttime + timer * this.speed ) * this.size;
+                    this.sphere.position.x = this.cone.position.x;
+                    this.sphere.position.y = this.cone.position.y;
+                }
+                else if(this.pathtype == "hline"){
+                    this.cone.position.x = this.cx + Math.cos( this.starttime + timer * this.speed ) * this.size;
+                    this.sphere.position.x = this.cone.position.x;
+                }
+                else if(this.pathtype == "vline"){
+                    this.cone.position.y = this.cy + Math.sin( this.starttime + timer * this.speed ) * this.size;
+                    this.sphere.position.y = this.cone.position.y;
+                }
+            };
+
+            </script>
+        </body>
+    </html>      
