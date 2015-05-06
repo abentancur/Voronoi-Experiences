@@ -25,11 +25,10 @@
             function animate(){
                 // update all the cells in the voronoi map
                 var timer = new Date().getTime() * 0.0005;
-                if (voronoiMap.length > 0){
-                    for (cell of voronoiMap){
-                        cell.update(timer);
-                    }
+                for (cell of voronoiMap){
+                    cell.update(timer);
                 }
+                
 
                 // render
                 renderer.render(scene, camera);
@@ -73,8 +72,13 @@
                 else if(k == 86){
                     currentPathtype="vline";
                 }
+                else if(k == 85){
+                    temp = voronoiMap.pop(); 
+                    scene.remove(temp.cone);
+                    scene.remove(temp.sphere);
+                }
                 else{
-                    alert("Invalid Key!!!\n\nMouseDown to add new particles to the canvus\nPress 'c' to change subsequent particle paths to circles\nPress 'h' to change subsequent particle paths to horizontal lines\nPress 'v' to change subsequent particle paths to vertical lines"); 
+                    alert("Invalid Key!!!\n\nMouseDown to add new particles to the canvus\nPress 'u' to undo\nPress 'c' to change subsequent particle paths to circles\nPress 'h' to change subsequent particle paths to horizontal lines\nPress 'v' to change subsequent particle paths to vertical lines"); 
                 }
             }
 
