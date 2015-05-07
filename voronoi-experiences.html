@@ -19,7 +19,7 @@
             document.addEventListener('mousedown', onDocumentMouseDown, false);
             document.addEventListener("keydown", onDocumentKeyPress, false);
             //current path type for new points to follow
-            var currentPathtype = "circle";
+            var currentPathtype = "point";
             //a list of all the voronoi cells
             var voronoiMap = [];
             var renderer, camera, scene, controls;
@@ -99,10 +99,15 @@
                     temp = voronoiMap.pop(); 
                     scene.remove(temp.cone);
                     scene.remove(temp.sphere);
-                } else if(k == 32){
+                } 
+                else if(k == 80){
+                    currentPathtype="point";
+                }
+                else if(k == 32){
                     controls.reset();
-                } else{
-                    alert("Invalid Key!!!\n\nMouseDown to add new particles to the canvus\nPress 'u' to undo\nPress 'c' to change subsequent particle paths to circles\nPress 'h' to change subsequent particle paths to horizontal lines\nPress 'v' to change subsequent particle paths to vertical lines"); 
+                }
+                else{
+                    alert("Invalid Key!!!\n\nMouseDown to add new particles to the canvus\nPress 'u' to undo\nPress 'p' to change subsequent particles to be static\nPress 'c' to change subsequent particle paths to circles\nPress 'h' to change subsequent particle paths to horizontal lines\nPress 'v' to change subsequent particle paths to vertical lines"); 
                 }
             }
 
@@ -154,6 +159,9 @@
                 else if(this.pathtype == "vline"){
                     this.cone.position.y = this.cy + Math.sin( this.starttime + timer * this.speed ) * this.size;
                     this.sphere.position.y = this.cone.position.y;
+                }
+                else if(this.pathtype == "point"){
+                    // No-op
                 }
             };
 
