@@ -97,9 +97,11 @@
                     currentPathtype="vline";
                 }
                 else if(k == 85){
-                    temp = voronoiMap.pop(); 
-                    scene.remove(temp.cone);
-                    scene.remove(temp.sphere);
+                    if (voronoiMap.length > 0) {
+                        temp = voronoiMap.pop(); 
+                        scene.remove(temp.cone);
+                        scene.remove(temp.sphere);
+                    }
                 } 
                 else if(k == 80){
                     currentPathtype="point";
@@ -110,8 +112,10 @@
                 else if(k == 66){
                     currentPathtype="heart";
                 }
+                    currentPathtype="star";
+                }
                 else{
-                    alert("Invalid Key!!!\n\nMouseDown to add new particles to the canvus\nPress 'u' to undo\nPress 'p' to change subsequent particles to be static\nPress 'c' to change subsequent particle paths to circles\nPress 'h' to change subsequent particle paths to horizontal lines\nPress 'v' to change subsequent particle paths to vertical lines\nPress 'b' to change subsequent particle paths to a heart curve"); 
+                    alert("Invalid Key!!!\n\nMouseDown to add new particles to the canvus\nPress 'u' to undo\nPress 'p' to change subsequent particles to be static\nPress 'c' to change subsequent particle paths to circles\nPress 'h' to change subsequent particle paths to horizontal lines\nPress 'v' to change subsequent particle paths to vertical lines\nPress 'b' to change subsequent particle paths to a heart curve\nPress 's' to change subsequent particle paths to a star curve (hypocycloid)"); 
                 }
             }
 
@@ -150,30 +154,33 @@
             }
 
             voronoiCell.prototype.update = function(timer){
+                var t = this.starttime + timer * this.speed;
                 if(this.pathtype == "circle"){
-                    this.cone.position.x = this.cx + Math.cos( this.starttime + timer * this.speed ) * this.size;
-                    this.cone.position.y = this.cy + Math.sin( this.starttime + timer * this.speed ) * this.size;
-                    this.sphere.position.x = this.cone.position.x;
-                    this.sphere.position.y = this.cone.position.y;
+                    this.cone.position.x = this.cx + Math.cos( t ) * this.size;
+                    this.cone.position.y = this.cy + Math.sin( t ) * this.size;
                 }
                 else if(this.pathtype == "hline"){
-                    this.cone.position.x = this.cx + Math.cos( this.starttime + timer * this.speed ) * this.size;
-                    this.sphere.position.x = this.cone.position.x;
+                    this.cone.position.x = this.cx + Math.cos( t ) * this.size;
                 }
                 else if(this.pathtype == "vline"){
-                    this.cone.position.y = this.cy + Math.sin( this.starttime + timer * this.speed ) * this.size;
-                    this.sphere.position.y = this.cone.position.y;
+                    this.cone.position.y = this.cy + Math.sin( t ) * this.size;
                 }
                 else if(this.pathtype == "heart"){
-                    var t = this.starttime + timer * this.speed;
                     this.cone.position.x = this.cx + ( 16*Math.pow( Math.sin(t), 3 ) ) * 5;
                     this.cone.position.y = this.cy + ( 13*Math.cos( t ) - 5*Math.cos( 2*t ) - 2 * Math.cos( 3*t ) - Math.cos( 4*t ) ) * 5;
-                    this.sphere.position.x = this.cone.position.x;
-                    this.sphere.position.y = this.cone.position.y;
+                }
+                else if(this.pathtype == "star"){
+                    // Note these should be adjusted for different sized stars, ratio must be 5/3 though
+                    var a = 50;
+                    var b = 30;
+                    this.cone.position.x = this.cx +( ((a-b)*Math.cos(t)) + b*Math.cos((a/b-1)*t) );
+                    this.cone.position.y = this.cy +( ((a-b)*Math.sin(t)) - b*Math.sin((a/b-1)*t) );
                 }
                 else if(this.pathtype == "point"){
                     // No-op
                 }
+                this.sphere.position.x = this.cone.position.x;
+                this.sphere.position.y = this.cone.position.y;
             };
 
             </script>
