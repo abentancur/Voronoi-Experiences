@@ -24,6 +24,11 @@
             //a list of all the voronoi cells
             var voronoiMap = [];
             var renderer, camera, scene, controls;
+            var lights = [];
+            var partyCells = [];
+            var parteighMode = false;
+            var strobeOn = false;
+            var regularLight, blackLight;
             
             init();
             
@@ -31,9 +36,15 @@
             function animate(){
                 // update all the cells in the voronoi map
                 var timer = new Date().getTime() * 0.0005;
-                for (cell of voronoiMap){
-                    cell.update(timer);
-                    //scene.add(cell.sphere.clone());
+                
+                if (parteighMode) {
+                    for (cell of partyCells) {
+                        cell.update(timer);
+                    }
+                } else {
+                    for (cell of voronoiMap){
+                        cell.update(timer);
+                    }
                 }
 
                 // render
@@ -47,7 +58,45 @@
                 controls.update();
             }
             
+            function parteighMovement(){
+                var d = Date.now();
+                var time = d * 0.00025 * 10;
+
+                if (d % 100 < 20) {
+                    scene.remove(blackLight);
+                    strobeOn = false;
+                } else {
+                    if (!strobeOn) {
+                        scene.add(blackLight);
+                        strobeOn = true;
+                    }
+                }
+
+                var z = 20, d = 400;
+                var startX = window.innerWidth/2;
+                var startY = window.innerHeight/2;
+                
+                lights[0].position.x = startX + Math.sin( time * 0.7 ) * d;
+                lights[0].position.y = startX + Math.cos( time * 0.3 ) * d;
+
+                lights[1].position.x = startX + Math.cos( time * 0.3 ) * d;
+                lights[1].position.y = startX + Math.sin( time * 0.7 ) * d;
+
+                lights[2].position.x = startX + Math.sin( time * 0.7 ) * d;
+                lights[2].position.y = startX + Math.sin( time * 0.5 ) * d;
+
+                lights[3].position.x = startX + Math.sin( time * 0.3 ) * d;
+                lights[3].position.y = startX + Math.sin( time * 0.5 ) * d;
+
+                lights[4].position.x = startX + Math.cos( time * 0.3 ) * d;
+                lights[4].position.y = startX + Math.sin( time * 0.5 ) * d;
+
+                lights[5].position.x = startX + Math.cos( time * 0.7 ) * d;
+                lights[5].position.y = startX + Math.cos( time * 0.5 ) * d;
+            }
+            
             function render(){
+                if (parteighMode) parteighMovement();
                 renderer.render(scene, camera);
             }
 
@@ -63,12 +112,37 @@
 
                 controls = new THREE.OrbitControls(camera, renderer.domElement );
                 controls.damping = 0.2;
-                controls.noKeys = true;
+                // controls.noKeys = true;
                 controls.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, PAN: THREE.MOUSE.MIDDLE };
                 controls.addEventListener('change', render);
                 
                 // scene
                 scene = new THREE.Scene();
+                
+                // Party lights
+                var intensity = 2.5;
+                var distance = 600;
+                // var c = [0xff0040, 0x0040ff, 0x00ff00, 0xffaa00, 0x00ffaa, 0xff1100];
+                var c = [0xff0040, 0x00ffff, 0xff0000, 0x7920ff, 0x00ff00, 0x0000ff];
+                var startX = window.innerWidth/2;
+                var startY = window.innerHeight/2;
+                
+                var sphere = new THREE.SphereGeometry( 3, 3, 32 );
+                
+                regularLight = new THREE.AmbientLight( 0xFFFFFF );
+                scene.add(regularLight); 
+                // blackLight = new THREE.AmbientLight( 0xB364D7 ); 
+                blackLight = new THREE.AmbientLight( 0xA700FF )
+                // scene.add(blackLight); 
+                
+                for (var i = 0; i < 6; ++i) {
+                    lights[i] = new THREE.PointLight( c[i], intensity, distance );
+                    lights[i].add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: c[i] } ) ) );
+                    lights[i].position.setX(startX);
+                    lights[i].position.setY(startY);
+                    lights[i].position.setZ(701);
+                    // scene.add( lights[i] );
+                }
                 
                 // set window resize listener
                 window.addEventListener('resize', onWindowResize, false);
@@ -107,9 +181,10 @@
                     f.addColor(cell,"color");//needs controller to call cell.mesh.material.setvalue(color:value)
                     f.add(cell,"speed").min(-10).max(10);
                     f.add(cell,"size").min(1).max(250);
+                    if (parteighMode) partyCells.push(cell);
                 }
             }
-
+            
             function onDocumentKeyPress(event) {
                 var k = event.which || event.keyCode;
                 if(k == 67){
@@ -126,6 +201,11 @@
                         temp = voronoiMap.pop(); 
                         scene.remove(temp.cone);
                         scene.remove(temp.sphere);
+                        if (parteighMode) {
+                            temp2 = partyCells.pop();
+                            scene.remove(temp2.cone);
+                            scene.remove(temp2.sphere);
+                        }
                     }
                 } 
                 else if(k == 80){
@@ -146,6 +226,58 @@
                     folders = [];
                     gui = new dat.GUI(); 
                 }
+                else if(k == 68){
+                    parteighMode = !parteighMode;
+                    if (parteighMode) {
+                        // Remove the regular cells from the scene
+                        for (var i = 0; i < voronoiMap.length; ++i) {
+                            var temp = voronoiMap[i];
+                            scene.remove(temp.cone);
+                            scene.remove(temp.sphere);
+                        }
+                        // Turn the regular light off
+                        scene.remove(regularLight);
+                        // Turn the party lights on
+                        for (var i = 0; i < lights.length; ++i) {
+                            scene.add(lights[i]);
+                        }
+                        // Turn the blacklight on
+                        scene.add(blackLight);
+                        // Place the party cells in
+                        for (var i = 0; i < voronoiMap.length; ++i) {
+                            var temp = voronoiMap[i];
+                            var newC = new voronoiCell(temp.pathtype, temp.cx, temp.cy, temp.speed, temp.size);
+                            scene.add(newC.cone);
+                            scene.add(newC.sphere);
+                            partyCells.push(newC);
+                        }
+                    } else {
+                        // Turn blacklight off
+                        scene.remove(blackLight);
+                        // Remove the party lights
+                        for (var i = 0; i < lights.length; ++i) {
+                            scene.remove(lights[i]);
+                        }
+                        // Remove the party cells
+                        while (partyCells.length > 0) {
+                            var temp = partyCells.pop();
+                            scene.remove(temp.cone);
+                            scene.remove(temp.sphere);
+                        }
+                        // Add regular cells back in
+                        for (var i = 0; i < voronoiMap.length; ++i) {
+                            var temp = voronoiMap[i];
+                            scene.add(temp.cone);
+                            scene.add(temp.sphere);
+                        }
+                        // Turn regular light back on
+                        scene.add(regularLight);
+                    }
+                    render();
+                }
+                else if(k == 37 || k == 38 || k == 39 || k == 40){
+                    // handled by orbit controls
+                }
                 else{
                     //alert("Invalid Key!!!\n\nMouseDown to add new particles to the canvus\nPress 'u' to undo\nPress 'p' to change subsequent particles to be static\nPress 'c' to change subsequent particle paths to circles\nPress 'h' to change subsequent particle paths to horizontal lines\nPress 'v' to change subsequent particle paths to vertical lines\nPress 'b' to change subsequent particle paths to a heart curve\nPress 's' to change subsequent particle paths to a star curve (hypocycloid)"); 
                 }
@@ -160,11 +292,12 @@
                 this.sphere = new THREE.Mesh( geometry, material );
                 this.sphere.position.x = cx;
                 this.sphere.position.y = cy;
-                this.sphere.position.z = 198;
+                this.sphere.position.z = 500;
                 //the cone represents the voronoi cell
                 this.color = getRandomColor();
-                var mat = new THREE.MeshBasicMaterial({color: this.color});
-                this.cone = new THREE.Mesh(new THREE.CylinderGeometry(0, 1400, 400, 50, 50, false), mat);
+                var mat = new THREE.MeshPhongMaterial({color: this.color});
+                var rBottom = 1.3*Math.pow(Math.pow(window.innerWidth,2) + Math.pow(window.innerHeight,2), .5);
+                this.cone = new THREE.Mesh(new THREE.CylinderGeometry(0, rBottom, 1000, 50, 50, false), mat);
                 this.cone.rotation.x += Math.PI/2;
                 this.cone.position.x = cx;
                 this.cone.position.y = cy;
