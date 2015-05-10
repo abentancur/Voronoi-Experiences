@@ -161,6 +161,7 @@
                     scene.add(cell.sphere);
                     scene.add(cell.cone);
                     voronoiMap.push(cell);
+<<<<<<< HEAD
                     if((voronoiMap.length - 1) % 3 == 0){
                         folders.push(gui.addFolder("Folder "+(folders.length+1)));
                     }
@@ -180,6 +181,9 @@
                     f.addColor(cell,"color");//needs controller to call cell.mesh.material.setvalue(color:value)
                     f.add(cell,"speed").min(-10).max(10);
                     f.add(cell,"size").min(1).max(250);
+=======
+                    if (parteighMode) partyCells.push(cell);
+>>>>>>> d09c5cd... Fixed movement bug when adding sites in party mode
                 }
             }
 <<<<<<< HEAD
