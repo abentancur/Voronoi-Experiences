@@ -14,6 +14,7 @@
 
         <script src="http://threejs.org/build/three.min.js"></script>
         <script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+        <script type="text/javascript" src="dat.gui.min.js"></script>
         <script defer="defer">
 
             document.addEventListener('mousedown', onDocumentMouseDown, false);
@@ -59,7 +60,7 @@
                 camera = new THREE.OrthographicCamera(0, window.innerWidth, window.innerHeight, 0, 1, 1000);
                 camera.position.z = 700;
 
-                controls = new THREE.OrbitControls(camera);
+                controls = new THREE.OrbitControls(camera, renderer.domElement );
                 controls.damping = 0.2;
                 controls.noKeys = true;
                 controls.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, PAN: THREE.MOUSE.MIDDLE };
@@ -74,16 +75,40 @@
                 // start animation
                 animate();
             }
-            
+            gui = new dat.GUI();
+            var folders = []
             function onDocumentMouseDown(event) {
-                if (event.which == 1) {
-                    var cell = new voronoiCell(currentPathtype, event.clientX, window.innerHeight - event.clientY);
+                cx = event.clientX;
+                cy = window.innerHeight - event.clientY;
+                canvasClick = (gui.closed == true && cy < 520) || (gui.closed == false && cx < window.innerWidth - 255);
+                if (event.which == 1 && canvasClick) {
+                    var cell = new voronoiCell(currentPathtype, cx, cy);
+                    //alert([cell.cx,cell.cy]);
                     scene.add(cell.sphere);
                     scene.add(cell.cone);
                     voronoiMap.push(cell);
+                    if((voronoiMap.length - 1) % 3 == 0){
+                        folders.push(gui.addFolder("Folder "+(folders.length+1)));
+                    }
+                    var f = folders[folders.length-1];
+                    typeController = f.add(cell, 'pathtype', [ 'static', 'hline', 'vline', 'circle', 'star', 'heart' ] );
+                    /*typeController.onChange(function(value) {
+                        gui.remove(cell,"size"); 
+                        alert(value);
+                        if(value == "hline" || value == "vline"){
+                            gui.add(cell,"size").name("length"); 
+                        }
+                        else{
+                            gui.add(cell,"size"); 
+                            alert("hi");
+                        }
+                    });*/
+                    f.addColor(cell,"color");//needs controller to call cell.mesh.material.setvalue(color:value)
+                    f.add(cell,"speed").min(-10).max(10);
+                    f.add(cell,"size").min(1).max(250);
                 }
-    
             }
+
             function onDocumentKeyPress(event) {
                 var k = event.which || event.keyCode;
                 if(k == 67){
@@ -140,15 +165,25 @@
                 else if(k == 83){
                     currentPathtype="star";
                 }
+                else if(k == 82){
+                    gui.destroy();
+                    delete gui;
+                    folders = [];
+                    gui = new dat.GUI(); 
+                }
                 else{
+<<<<<<< HEAD
                     alert("Invalid Key!!!\n\nMouseDown to add new particles to the canvus\nPress 'u' to undo\nPress 'p' to change subsequent particles to be static\nPress 'c' to change subsequent particle paths to circles\nPress 'h' to change subsequent particle paths to horizontal lines\nPress 'v' to change subsequent particle paths to vertical lines\nPress 'b' to change subsequent particle paths to a heart curve\nPress 's' to change subsequent particle paths to a star curve (hypocycloid)"); 
 >>>>>>> f03d815... Added star paths
+=======
+                    //alert("Invalid Key!!!\n\nMouseDown to add new particles to the canvus\nPress 'u' to undo\nPress 'p' to change subsequent particles to be static\nPress 'c' to change subsequent particle paths to circles\nPress 'h' to change subsequent particle paths to horizontal lines\nPress 'v' to change subsequent particle paths to vertical lines\nPress 'b' to change subsequent particle paths to a heart curve\nPress 's' to change subsequent particle paths to a star curve (hypocycloid)"); 
+>>>>>>> d086c8a... Began gui
                 }
             }
 
             function voronoiCell(pathtype, cx, cy, speed, size) {
                 if (typeof speed == 'undefined') { speed = 5; }
-                if (typeof size == 'undefined') {size = 50; }
+                if (typeof size == 'undefined') { size = 50; }
                 //the black sphere represents the location for the voronoi cell
                 var geometry = new THREE.SphereGeometry( 3, 32, 32 );
                 var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
@@ -157,7 +192,8 @@
                 this.sphere.position.y = cy;
                 this.sphere.position.z = 198;
                 //the cone represents the voronoi cell
-                var mat = new THREE.MeshBasicMaterial({color: '#'+Math.floor(Math.random()*16777215).toString(16)});
+                this.color = getRandomColor();
+                var mat = new THREE.MeshBasicMaterial({color: this.color});
                 this.cone = new THREE.Mesh(new THREE.CylinderGeometry(0, 1400, 400, 50, 50, false), mat);
                 this.cone.rotation.x += Math.PI/2;
                 this.cone.position.x = cx;
@@ -170,6 +206,16 @@
                 this.size = size;
                 this.cx = cx;
                 this.cy = cy;
+            }
+
+            //https://stackoverflow.com/questions/1484506/random-color-generator-in-javascript
+            function getRandomColor() {
+                var letters = '0123456789ABCDEF'.split('');
+                var color = '#';
+                for (var i = 0; i < 6; i++ ) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
             }
             
             function onWindowResize() {
@@ -194,6 +240,7 @@
                 }
 <<<<<<< HEAD
                 else if(this.pathtype == "heart"){
+<<<<<<< HEAD
                     this.cone.position.x = this.cx + ( 16*Math.pow( Math.sin(t), 3 ) ) * 5;
                     this.cone.position.y = this.cy + ( 13*Math.cos( t ) - 5*Math.cos( 2*t ) - 2 * Math.cos( 3*t ) - Math.cos( 4*t ) ) * 5;
 <<<<<<< HEAD
@@ -201,11 +248,15 @@
                     this.sphere.position.y = this.cone.position.y;
 =======
 =======
+=======
+                    this.cone.position.x = this.cx + ( 16*Math.pow( Math.sin(t), 3 ) ) * this.size/10;
+                    this.cone.position.y = this.cy + ( 13*Math.cos( t ) - 5*Math.cos( 2*t ) - 2 * Math.cos( 3*t ) - Math.cos( 4*t ) ) * this.size/10;
+>>>>>>> d086c8a... Began gui
                 }
                 else if(this.pathtype == "star"){
                     // Note these should be adjusted for different sized stars, ratio must be 5/3 though
-                    var a = 50;
-                    var b = 30;
+                    var a = this.size;
+                    var b = a*3/5;
                     this.cone.position.x = this.cx +( ((a-b)*Math.cos(t)) + b*Math.cos((a/b-1)*t) );
                     this.cone.position.y = this.cy +( ((a-b)*Math.sin(t)) - b*Math.sin((a/b-1)*t) );
                 }
@@ -221,3 +272,4 @@
             </script>
         </body>
     </html>      
+
