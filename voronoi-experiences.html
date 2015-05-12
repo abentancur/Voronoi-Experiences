@@ -23,6 +23,9 @@
             var currentPathtype = "point";
             //a list of all the voronoi cells
             var voronoiMap = [];
+            //each folder groups the gui controls for up to three voronoi cells
+            var folders = []
+            var gui;
             var renderer, camera, scene, controls;
             var lights = [];
             var partyCells = [];
@@ -134,6 +137,8 @@
                 // blackLight = new THREE.AmbientLight( 0xB364D7 ); 
                 blackLight = new THREE.AmbientLight( 0xA700FF )
                 // scene.add(blackLight); 
+
+                gui = new dat.GUI();
                 
                 for (var i = 0; i < 6; ++i) {
                     lights[i] = new THREE.PointLight( c[i], intensity, distance );
@@ -150,12 +155,15 @@
                 // start animation
                 animate();
             }
-            gui = new dat.GUI();
-            var folders = []
+
             function onDocumentMouseDown(event) {
                 cx = event.clientX;
                 cy = window.innerHeight - event.clientY;
-                canvasClick = (gui.closed == true && cy < 520) || (gui.closed == false && cx < window.innerWidth - 255);
+                //if opacity is 0 then they user clicked the canvas quadrants are w.r.t. bottom left point of gui as origin
+                quad23 = cx < window.innerWidth - gui.domElement.offsetWidth - 17; 
+                quad4 = cx >= window.innerWidth - gui.domElement.offsetWidth - 17 && cy < window.innerHeight - gui.domElement.clientHeight - 25; 
+                var canvasClick = gui.domElement.style.opacity == "0" || quad23 || quad4;
+                //alert([cx,cy,quad4]);
                 if (event.which == 1 && canvasClick) {
                     var cell = new voronoiCell(currentPathtype, cx, cy);
                     //alert([cell.cx,cell.cy]);
@@ -163,22 +171,15 @@
                     scene.add(cell.cone);
                     voronoiMap.push(cell);
                     if((voronoiMap.length - 1) % 3 == 0){
-                        folders.push(gui.addFolder("Folder "+(folders.length+1)));
+                        folders.push(gui.addFolder("Group "+(folders.length+1)));
                     }
                     var f = folders[folders.length-1];
-                    typeController = f.add(cell, 'pathtype', [ 'static', 'hline', 'vline', 'circle', 'star', 'heart' ] );
-                    /*typeController.onChange(function(value) {
-                        gui.remove(cell,"size"); 
-                        alert(value);
-                        if(value == "hline" || value == "vline"){
-                            gui.add(cell,"size").name("length"); 
-                        }
-                        else{
-                            gui.add(cell,"size"); 
-                            alert("hi");
-                        }
-                    });*/
-                    f.addColor(cell,"color");//needs controller to call cell.mesh.material.setvalue(color:value)
+                    f.add(cell, 'pathtype', [ 'static', 'hline', 'vline', 'circle', 'star', 'heart' ] );
+
+                    colorController = f.addColor(cell,"color");
+                    colorController.onChange(function(value) {
+                        cell.cone.material.color.setHex(value.replace( '#','0x' ));
+                    });
                     f.add(cell,"speed").min(-10).max(10);
                     f.add(cell,"size").min(1).max(250);
                     if (parteighMode) partyCells.push(cell);
@@ -198,13 +199,41 @@
                 }
                 else if(k == 85){
                     if (voronoiMap.length > 0) {
+                        //store information to determine if we should open the last folder
+                        var prevOpen = !folders[folders.length-1].closed;
+                        var prevSize = folders.length;
+                        //remove the voronoi cell
                         temp = voronoiMap.pop(); 
                         scene.remove(temp.cone);
                         scene.remove(temp.sphere);
+                        //delete gui
+                        gui.destroy();
+                        delete gui;
+                        folders = [];
+                        //reconstruct the gui with the removed voronoi cell
+                        gui = new dat.GUI(); 
+                        for(i = 0; i < voronoiMap.length; i++){
+                            var cell = voronoiMap[i];
+                            if(i % 3 == 0){
+                                folders.push(gui.addFolder("Group "+(folders.length+1)));
+                            }
+                            var f = folders[folders.length-1];
+                            f.add(cell, 'pathtype', [ 'static', 'hline', 'vline', 'circle', 'star', 'heart' ] );
+        
+                            colorController = f.addColor(cell,"color");
+                            colorController.onChange(function(value) {
+                                cell.cone.material.color.setHex(value.replace( '#','0x' ));
+                            });
+                            f.add(cell,"speed").min(-10).max(10);
+                            f.add(cell,"size").min(1).max(250);
+                        }
                         if (parteighMode) {
                             temp2 = partyCells.pop();
                             scene.remove(temp2.cone);
                             scene.remove(temp2.sphere);
+                        }
+                        if(prevOpen && prevSize == folders.length){
+                            folders[folders.length-1].open();
                         }
                     }
                 } 
@@ -219,12 +248,6 @@
                 }
                 else if(k == 83){
                     currentPathtype="star";
-                }
-                else if(k == 82){
-                    gui.destroy();
-                    delete gui;
-                    folders = [];
-                    gui = new dat.GUI(); 
                 }
                 else if(k == 68){
                     parteighMode = !parteighMode;
@@ -277,9 +300,6 @@
                 }
                 else if(k == 37 || k == 38 || k == 39 || k == 40){
                     // handled by orbit controls
-                }
-                else{
-                    //alert("Invalid Key!!!\n\nMouseDown to add new particles to the canvus\nPress 'u' to undo\nPress 'p' to change subsequent particles to be static\nPress 'c' to change subsequent particle paths to circles\nPress 'h' to change subsequent particle paths to horizontal lines\nPress 'v' to change subsequent particle paths to vertical lines\nPress 'b' to change subsequent particle paths to a heart curve\nPress 's' to change subsequent particle paths to a star curve (hypocycloid)"); 
                 }
             }
 
