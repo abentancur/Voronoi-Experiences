@@ -10,6 +10,7 @@
         </style>
     </head>
     <body>
+        <audio id="music" src="ScaryMonstersNiceSpritesIntrumental.mp3"></audio>
         <div id="container"> </div>
 
         <script src="http://threejs.org/build/three.min.js"></script>
@@ -274,7 +275,10 @@
                             scene.add(newC.sphere);
                             partyCells.push(newC);
                         }
+                        //introduce short delay to allow party mode to load before playing audio
+                        setTimeout( function(){document.getElementById("music").play()}, 100 );
                     } else {
+                        document.getElementById("music").pause();
                         // Turn blacklight off
                         scene.remove(blackLight);
                         // Remove the party lights
