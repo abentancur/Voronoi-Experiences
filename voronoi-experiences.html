@@ -230,12 +230,13 @@
                             f.remove(temp.colorControl);
                         }
                         
+                        //remove the empty folder if there is one now
                         if (voronoiMap.length % 3 == 0) {
                             folders.pop();
+                            //dat.gui doesn't support removing folders directly
                             var name = f.name;
                             gui.__folders[name].close();
                             gui.__folders[name].domElement.parentNode.parentNode.removeChild(gui.__folders[name].domElement.parentNode);
-                            gui.__folders[name] = undefined;
                             gui.__folders[name] = undefined;
                             gui.onResize();
                         }
