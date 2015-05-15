@@ -175,14 +175,19 @@
                         folders.push(gui.addFolder("Group "+(folders.length+1)));
                     }
                     var f = folders[folders.length-1];
-                    f.add(cell, 'pathtype', [ 'static', 'hline', 'vline', 'circle', 'star', 'heart' ] );
+                    cell.pathControl = f.add(cell, 'pathtype', [ 'static', 'hline', 'vline', 'circle', 'star', 'heart' ] );
 
                     colorController = f.addColor(cell,"color");
                     colorController.onChange(function(value) {
                         cell.cone.material.color.setHex(value.replace( '#','0x' ));
                     });
-                    f.add(cell,"speed").min(-10).max(10);
-                    f.add(cell,"size").min(1).max(250);
+                    
+                    // add the gui info to the cell
+                    cell.speedControl = f.add(cell,"speed").min(-10).max(10);
+                    cell.sizeControl = f.add(cell,"size").min(1).max(250);
+                    cell.folder = f;
+                    cell.colorControl = colorController;
+                    
                     if (parteighMode) partyCells.push(cell);
                 }
             }
@@ -203,38 +208,36 @@
                         //store information to determine if we should open the last folder
                         var prevOpen = !folders[folders.length-1].closed;
                         var prevSize = folders.length;
+                        
                         //remove the voronoi cell
                         temp = voronoiMap.pop(); 
                         scene.remove(temp.cone);
                         scene.remove(temp.sphere);
-                        //delete gui
-                        gui.destroy();
-                        delete gui;
-                        folders = [];
-                        //reconstruct the gui with the removed voronoi cell
-                        gui = new dat.GUI(); 
-                        for(i = 0; i < voronoiMap.length; i++){
-                            var cell = voronoiMap[i];
-                            if(i % 3 == 0){
-                                folders.push(gui.addFolder("Group "+(folders.length+1)));
-                            }
-                            var f = folders[folders.length-1];
-                            f.add(cell, 'pathtype', [ 'static', 'hline', 'vline', 'circle', 'star', 'heart' ] );
-        
-                            colorController = f.addColor(cell,"color");
-                            colorController.onChange(function(value) {
-                                cell.cone.material.color.setHex(value.replace( '#','0x' ));
-                            });
-                            f.add(cell,"speed").min(-10).max(10);
-                            f.add(cell,"size").min(1).max(250);
-                        }
+                        
+                        //remove the partymode cell
                         if (parteighMode) {
                             temp2 = partyCells.pop();
                             scene.remove(temp2.cone);
                             scene.remove(temp2.sphere);
                         }
-                        if(prevOpen && prevSize == folders.length){
-                            folders[folders.length-1].open();
+                        
+                        //remove the gui controls for this cell
+                        var f = temp.folder;
+                        if (typeof f != 'undefined') {
+                            f.remove(temp.pathControl);
+                            f.remove(temp.speedControl);
+                            f.remove(temp.sizeControl);
+                            f.remove(temp.colorControl);
+                        }
+                        
+                        if (voronoiMap.length % 3 == 0) {
+                            folders.pop();
+                            var name = f.name;
+                            gui.__folders[name].close();
+                            gui.__folders[name].domElement.parentNode.parentNode.removeChild(gui.__folders[name].domElement.parentNode);
+                            gui.__folders[name] = undefined;
+                            gui.__folders[name] = undefined;
+                            gui.onResize();
                         }
                     }
                 } 
