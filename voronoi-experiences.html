@@ -10,7 +10,7 @@
         </style>
     </head>
     <body>
-        <audio id="music" src="ScaryMonstersNiceSpritesIntrumental.mp3"></audio>
+        <audio id="music" src="ScaryMonstersNiceSpritesInstrumental.mp3"></audio>
         <div id="container"> </div>
 
         <script src="http://threejs.org/build/three.min.js"></script>
@@ -25,7 +25,7 @@
             //a list of all the voronoi cells
             var voronoiMap = [];
             //each folder groups the gui controls for up to three voronoi cells
-            var folders = []
+            var folders = [];
             var gui;
             var renderer, camera, scene, controls;
             var lights = [];
@@ -42,12 +42,12 @@
                 var timer = new Date().getTime() * 0.0005;
                 
                 if (parteighMode) {
-                    for (cell of partyCells) {
-                        cell.update(timer);
+                    for(var i = 0; i < partyCells.length; i++) {
+                        partyCells[i].update(timer);
                     }
                 } else {
-                    for (cell of voronoiMap){
-                        cell.update(timer);
+                    for (var i = 0; i < voronoiMap.length; i++) {
+                        voronoiMap[i].update(timer);
                     }
                 }
 
@@ -62,7 +62,7 @@
                 controls.update();
             }
             
-            function parteighMovement(){
+            function parteighMovement() {
                 var d = Date.now();
                 var time = d * 0.00025 * 10;
 
@@ -99,7 +99,7 @@
                 lights[5].position.y = startX + Math.cos( time * 0.5 ) * d;
             }
             
-            function render(){
+            function render() {
                 if (parteighMode) parteighMovement();
                 renderer.render(scene, camera);
             }
@@ -136,7 +136,7 @@
                 regularLight = new THREE.AmbientLight( 0xFFFFFF );
                 scene.add(regularLight); 
                 // blackLight = new THREE.AmbientLight( 0xB364D7 ); 
-                blackLight = new THREE.AmbientLight( 0xA700FF )
+                blackLight = new THREE.AmbientLight( 0xA700FF );
                 // scene.add(blackLight); 
 
                 gui = new dat.GUI();
@@ -171,7 +171,7 @@
                     scene.add(cell.sphere);
                     scene.add(cell.cone);
                     voronoiMap.push(cell);
-                    if((voronoiMap.length - 1) % 3 == 0){
+                    if ((voronoiMap.length - 1) % 3 === 0) {
                         folders.push(gui.addFolder("Group "+(folders.length+1)));
                     }
                     var f = folders[folders.length-1];
@@ -194,16 +194,16 @@
             
             function onDocumentKeyPress(event) {
                 var k = event.which || event.keyCode;
-                if(k == 67){
+                if (k == 67) {
                     currentPathtype="circle";
                 }
-                else if(k == 76){
+                else if (k == 76) {
                     currentPathtype="hline";
                 }
-                else if(k == 86){
+                else if (k == 86) {
                     currentPathtype="vline";
                 }
-                else if(k == 85){
+                else if (k == 85) {
                     if (voronoiMap.length > 0) {
                         //store information to determine if we should open the last folder
                         var prevOpen = !folders[folders.length-1].closed;
@@ -231,7 +231,7 @@
                         }
                         
                         //remove the empty folder if there is one now
-                        if (voronoiMap.length % 3 == 0) {
+                        if (voronoiMap.length % 3 === 0) {
                             folders.pop();
                             //dat.gui doesn't support removing folders directly
                             var name = f.name;
@@ -242,19 +242,19 @@
                         }
                     }
                 } 
-                else if(k == 80){
+                else if (k == 80) {
                     currentPathtype="point";
                 }
-                else if(k == 32){
+                else if (k == 32) {
                     controls.reset();
                 }
-                else if(k == 66){
+                else if (k == 66) {
                     currentPathtype="heart";
                 }
-                else if(k == 83){
+                else if (k == 83) {
                     currentPathtype="star";
                 }
-                else if(k == 68){
+                else if (k == 68) {
                     parteighMode = !parteighMode;
                     if (parteighMode) {
                         // Remove the regular cells from the scene
@@ -306,7 +306,7 @@
                     }
                     render();
                 }
-                else if(k == 37 || k == 38 || k == 39 || k == 40){
+                else if (k == 37 || k == 38 || k == 39 || k == 40) {
                     // handled by orbit controls
                 }
             }
@@ -324,7 +324,7 @@
                 //the cone represents the voronoi cell
                 this.color = getRandomColor();
                 var mat = new THREE.MeshPhongMaterial({color: this.color});
-                var rBottom = 1.3*Math.pow(Math.pow(window.innerWidth,2) + Math.pow(window.innerHeight,2), .5);
+                var rBottom = 1.3*Math.pow(Math.pow(window.innerWidth,2) + Math.pow(window.innerHeight,2), 0.5);
                 this.cone = new THREE.Mesh(new THREE.CylinderGeometry(0, rBottom, 1000, 50, 50, false), mat);
                 this.cone.rotation.x += Math.PI/2;
                 this.cone.position.x = cx;
@@ -359,28 +359,28 @@
 
             voronoiCell.prototype.update = function(timer){
                 var t = this.starttime + timer * this.speed;
-                if(this.pathtype == "circle"){
+                if (this.pathtype == "circle") {
                     this.cone.position.x = this.cx + Math.cos( t ) * this.size;
                     this.cone.position.y = this.cy + Math.sin( t ) * this.size;
                 }
-                else if(this.pathtype == "hline"){
+                else if (this.pathtype == "hline") {
                     this.cone.position.x = this.cx + Math.cos( t ) * this.size;
                 }
-                else if(this.pathtype == "vline"){
+                else if (this.pathtype == "vline") {
                     this.cone.position.y = this.cy + Math.sin( t ) * this.size;
                 }
-                else if(this.pathtype == "heart"){
+                else if (this.pathtype == "heart") {
                     this.cone.position.x = this.cx + ( 16*Math.pow( Math.sin(t), 3 ) ) * this.size/10;
                     this.cone.position.y = this.cy + ( 13*Math.cos( t ) - 5*Math.cos( 2*t ) - 2 * Math.cos( 3*t ) - Math.cos( 4*t ) ) * this.size/10;
                 }
-                else if(this.pathtype == "star"){
+                else if (this.pathtype == "star") {
                     // Note these should be adjusted for different sized stars, ratio must be 5/3 though
                     var a = this.size;
                     var b = a*3/5;
                     this.cone.position.x = this.cx +( ((a-b)*Math.cos(t)) + b*Math.cos((a/b-1)*t) );
                     this.cone.position.y = this.cy +( ((a-b)*Math.sin(t)) - b*Math.sin((a/b-1)*t) );
                 }
-                else if(this.pathtype == "point"){
+                else if (this.pathtype == "point") {
                     // No-op
                 }
                 this.sphere.position.x = this.cone.position.x;
