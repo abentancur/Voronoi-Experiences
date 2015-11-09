@@ -2,6 +2,8 @@
 
 A fun and interactive, aesthetically pleasing, dynamic Voronoi-Experience. Voronoi-Experiences allows users to add dynamic Voronoi sites to a WebGL canvas. Each Voronoi site moves along one of six predefined paths while the Voronoi diagram is seamlessly updated. Be sure to use the orbit mode to take a look at how we are taking advantage of cones to reduce the time complexity. That is, instead of calculating the Voronoi diagram after each timestamp in O(nlog(n)), we merely represent each Voronoi site as a black sphere superimposed on the tip of a colored cone. Since the edges of the Voronoi diagram are simply the intersection of adjacent cones, the diagram is updated as a consequence of moving the cones in O(n).
 
+Experience it yourself at www.voronoi-experiences.com (WebGL required; Sound recommended)
+
 ---
 
 # Demo
